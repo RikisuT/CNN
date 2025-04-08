@@ -8,7 +8,14 @@ from tqdm import tqdm
 import multiprocessing
 import matplotlib.pyplot as plt
 
-# Utilize available CPU cores
+# Set the path to the dataset directory
+data_dir = "/home/rikisu/NNDL/cell_images"
+
+# Set the number of training epochs (you can increase this later for better accuracy)
+epochs = 2
+
+# Automatically set the number of worker processes for data loading
+# based on the number of available CPU cores
 num_workers = multiprocessing.cpu_count()
 
 # Define CNN model
@@ -77,7 +84,6 @@ transform = transforms.Compose([
 ])
 
 # Load dataset
-data_dir = "/home/rikisu/NNDL/cell_images"
 dataset = datasets.ImageFolder(root=data_dir, transform=transform)  # Expects data in folders named by class
 train_size = int(0.8 * len(dataset))  # 80% training data
 test_size = len(dataset) - train_size  # 20% testing data
@@ -95,7 +101,6 @@ criterion = nn.CrossEntropyLoss()  # Loss function for classification
 optimizer = optim.Adam(model.parameters(), lr=0.001)  # Adam optimizer
 
 #---------- TRAINING LOOP ----------#
-epochs = 20
 train_losses = []
 test_accuracies = []
 
