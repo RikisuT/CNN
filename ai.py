@@ -18,7 +18,7 @@ import gc
 # Configuration
 CONFIG = {
     'batch_size': 16,
-    'epochs': 2,
+    'epochs': 20,
     'learning_rate': 0.001,
     'image_size': 128,  # Increased from 200 to standard 224
     'data_dir': "/home/rikisu/NNDL/CNN/cell_images",
@@ -411,13 +411,14 @@ def plot_results(results):
             results['test_auc']
         ]
         plt.bar(metrics, values, color=['blue', 'green', 'red', 'purple', 'orange'])
-        plt.ylim(0, 1)
+        plt.ylabel('Score')
+        plt.ylim(0.9, 1.1) # Set y-limit slightly above 1.0
         plt.title('Test Metrics')
         for i, v in enumerate(values):
             plt.text(i, v + 0.02, f"{v:.2f}", ha='center')
     
     plt.tight_layout()
-    plt.savefig(os.path.join(CONFIG['save_dir'], 'training_results.png'))
+    plt.savefig(os.path.join(CONFIG['save_dir'], 'training_results_ai.png'))
     plt.show()
 
 # Main execution
