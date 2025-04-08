@@ -9,7 +9,7 @@ import multiprocessing
 import matplotlib.pyplot as plt
 
 # Set the path to the dataset directory
-data_dir = "/home/rikisu/NNDL/cell_images"
+data_dir = "/home/rikisu/NNDL/CNN/cell_images"
 
 # Set the number of training epochs (you can increase this later for better accuracy)
 epochs = 2
