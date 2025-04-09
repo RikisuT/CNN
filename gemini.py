@@ -23,7 +23,7 @@ epochs = 40 # Increased epochs, early stopping will prevent overfitting
 batch_size = 32 # Adjusted batch size (tune based on GPU memory)
 learning_rate = 0.001
 seed = 42 # For reproducibility
-patience = 5 # For early stopping
+patience = 10 # For early stopping
 
 # Automatically set the number of worker processes for data loading
 num_workers = multiprocessing.cpu_count()
@@ -43,7 +43,7 @@ if torch.cuda.is_available():
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed) # if you are using multi-GPU
     # Deterministic operations can sometimes slow down training
-    # torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.deterministic = True
     # torch.backends.cudnn.benchmark = False # Disable benchmark for deterministic behavior
 
 # Use a fixed generator for reproducible splits
@@ -355,7 +355,7 @@ print(f"Accuracy:  {test_accuracy:.2f}%")
 print(f"Precision: {test_precision:.4f}")
 print(f"Recall:    {test_recall:.4f}")
 print(f"F1-Score:  {test_f1:.4f}")
-print(f"AUC:       {test_auc:.4f}") # Always print AUC, will be 0.0 if not calculated
+print(f"AUC:       {test_auc:.4f}") 
 
 cm = confusion_matrix(test_all_labels, test_all_preds)
 print("\nConfusion Matrix:")
@@ -371,7 +371,7 @@ results = {
     'test_precision': test_precision,
     'test_recall': test_recall,
     'test_f1': test_f1,
-    'test_auc': test_auc, # Store calculated AUC
+    'test_auc': test_auc, 
     'confusion_matrix': cm
 }
 
@@ -439,7 +439,7 @@ def plot_results(results_dict, class_names_list, save_path):
     bars = plt.bar(metrics, values, color=['#1f77b4', '#2ca02c', '#d62728', '#9467bd', '#ff7f0e'])
     plt.title('Final Test Set Metrics (Best Model)')
     plt.ylabel('Score')
-    plt.ylim(0.9, 1.1) # Set y-limit slightly above 1.0
+    plt.ylim(0.9, 1.1) 
 
     # Add text labels above bars
     for bar in bars:
