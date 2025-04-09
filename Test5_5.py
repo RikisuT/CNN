@@ -27,7 +27,7 @@ print(f"Using {num_workers} workers for data loading.")
 
 save_dir = 'results'
 os.makedirs(save_dir, exist_ok=True)
-best_model_save_path = os.path.join(save_dir, 'best_model_Team5.pth')
+best_model_save_path = os.path.join(save_dir, 'best_model_Team5_5.pth')
 
 print(f"Setting random seed to: {seed}")
 generator = torch.Generator().manual_seed(seed)
@@ -126,7 +126,7 @@ class MalariaCNNImproved(nn.Module):
         self.flattened_size = 256 * 8 * 8  # After 4 pooling layers: 128/16 = 8
         
         # Fully Connected layers
-        self.fc1 = nn.Linear(self.flattened_size, 512)  # Increased neurons
+        self.fc1 = nn.Linear(self.flattened_size, 512) 
         self.bn_fc1 = nn.BatchNorm1d(512)
         self.relu5 = nn.ReLU()
         self.dropout1 = nn.Dropout(0.5)
@@ -135,7 +135,7 @@ class MalariaCNNImproved(nn.Module):
         self.fc2 = nn.Linear(512, 256)
         self.bn_fc2 = nn.BatchNorm1d(256)
         self.relu6 = nn.ReLU()
-        self.dropout2 = nn.Dropout(0.3)  # Slightly less dropout in final layer
+        self.dropout2 = nn.Dropout(0.3) 
         
         self.fc3 = nn.Linear(256, num_classes)
 
@@ -188,7 +188,7 @@ train_losses = []
 val_losses = []
 val_accuracies = []
 
-# Variables for Early Stopping and Best Model Saving - now tracking accuracy instead of loss
+# Variables for Early Stopping and Best Model Saving 
 best_val_accuracy = 0.0
 patience_counter = 0
 
@@ -251,7 +251,7 @@ for epoch in range(epochs):
 
     print(f"Epoch {epoch+1}/{epochs} => Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f} | Val Acc: {accuracy:.2f}%")
 
-    #  Early Stopping & Best Model Check - now based on accuracy 
+    #  Early Stopping & Best Model Check based on accuracy 
     if accuracy > best_val_accuracy:
         best_val_accuracy = accuracy
         patience_counter = 0
@@ -273,7 +273,7 @@ print("\n Training Finished ")
 print(f"\n Loading best model from {best_model_save_path} for final evaluation ")
 try:
     model.load_state_dict(torch.load(best_model_save_path))
-    model.to(device)  # Ensure model is on correct device after loading
+    model.to(device)
 except FileNotFoundError:
     print(f"ERROR: Best model file not found at {best_model_save_path}. Evaluating with the last model state.")
 except Exception as e:
@@ -291,7 +291,6 @@ with torch.no_grad():
     for images, labels in tqdm(test_loader, desc="[Test Eval]"):
         images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
 
-        # Use autocast for consistency
         with torch.amp.autocast("cuda", enabled=use_amp):
              outputs = model(images)
 
@@ -314,7 +313,7 @@ test_precision = precision_score(test_all_labels, test_all_preds, average=avg_me
 test_recall = recall_score(test_all_labels, test_all_preds, average=avg_method, zero_division=0)
 test_f1 = f1_score(test_all_labels, test_all_preds, average=avg_method, zero_division=0)
 
-test_auc = 0.0  # Initialize AUC
+test_auc = 0.0 
 unique_labels = np.unique(test_all_labels)
 if num_classes == 2 and len(unique_labels) > 1 and len(test_all_probs) == len(test_all_labels):
     try:
@@ -420,7 +419,7 @@ def plot_results(results_dict, class_names_list, save_path):
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])  
 
 
-    plot_filename = os.path.join(save_path, 'training_validation_test_results_Team5_improved.png')
+    plot_filename = os.path.join(save_path, 'training_validation_test_results_Team5_improved2.png')
     try:
         plt.savefig(plot_filename)
         print(f"\nResults plot saved to {plot_filename}")
