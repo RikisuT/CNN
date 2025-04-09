@@ -18,9 +18,9 @@ import gc
 # Configuration
 CONFIG = {
     'batch_size': 16,
-    'epochs': 20,
+    'epochs': 40,
     'learning_rate': 0.001,
-    'image_size': 128,  # Increased from 200 to standard 224
+    'image_size': 128, 
     'data_dir': "/home/rikisu/NNDL/CNN/cell_images",
     'train_split': 0.7,
     'val_split': 0.15,
@@ -159,6 +159,7 @@ weights = weights / weights.sum() * 2  # Normalize and scale
 # Define the training function
 def train_and_evaluate(model, train_loader, val_loader, test_loader=None, fold=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    use_amp = torch.cuda.is_available()
     print(f"Using device: {device}")
     
     # Enable memory efficient features if using CUDA
@@ -213,9 +214,11 @@ def train_and_evaluate(model, train_loader, val_loader, test_loader=None, fold=N
         for images, labels in progress_bar:
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
-            outputs = model(images)
-            loss = criterion(outputs, labels)
+            with torch.amp.autocast(device_type='cuda', enabled=use_amp):
+                outputs = model(images)
+                loss = criterion(outputs, labels)
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
             running_loss += loss.item()
             progress_bar.set_postfix(loss=running_loss / (progress_bar.n + 1))
@@ -235,9 +238,11 @@ def train_and_evaluate(model, train_loader, val_loader, test_loader=None, fold=N
         with torch.no_grad():
             for images, labels in val_loader:
                 images, labels = images.to(device), labels.to(device)
-                outputs = model(images)
-                loss = criterion(outputs, labels)
                 
+                with torch.amp.autocast(device_type='cuda', enabled=use_amp):
+                    outputs = model(images)
+                    loss = criterion(outputs, labels)
+                    
                 val_loss += loss.item()
                 
                 # Get predictions
@@ -305,7 +310,8 @@ def train_and_evaluate(model, train_loader, val_loader, test_loader=None, fold=N
         with torch.no_grad():
             for images, labels in test_loader:
                 images, labels = images.to(device), labels.to(device)
-                outputs = model(images)
+                with torch.amp.autocast(device_type='cuda', enabled=use_amp):
+                    outputs = model(images)
                 
                 # Get predictions
                 probs = F.softmax(outputs, dim=1)
@@ -419,7 +425,7 @@ def plot_results(results):
     
     plt.tight_layout()
     plt.savefig(os.path.join(CONFIG['save_dir'], 'training_results_ai.png'))
-    plt.show()
+    plt.close()
 
 # Main execution
 if __name__ == "__main__":

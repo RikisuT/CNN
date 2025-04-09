@@ -16,7 +16,7 @@ import time
 # Configuration
 CONFIG = {
     'batch_size': 32, 
-    'epochs': 10,      
+    'epochs': 40,      
     'learning_rate': 0.001, 
     'image_size': 128,      # Set image size
     'data_dir': "/home/rikisu/NNDL/CNN/cell_images", # Make sure this path is correct
@@ -125,7 +125,8 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=CONFIG['learning_rate'])
 
 # Mixed precision scaler
-scaler = torch.amp.GradScaler('cuda')
+use_amp = torch.cuda.is_available()
+scaler = torch.amp.GradScaler(device="cuda", enabled=use_amp)
 print(f"Mixed precision training enabled: {scaler.is_enabled()}")
 
 #---------- TRAINING & EVALUATION ----------#
@@ -171,8 +172,9 @@ for epoch in range(CONFIG['epochs']):
         for images, labels in val_progress_bar:
             images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
             # Run validation in default precision or autocast if desired/needed
-            outputs = model(images)
-            loss = criterion(outputs, labels)
+            with torch.amp.autocast(device_type='cuda', enabled=use_amp):
+                outputs = model(images)
+                loss = criterion(outputs, labels)
             val_running_loss += loss.item()
 
             _, predicted = torch.max(outputs, 1)
@@ -206,7 +208,8 @@ test_all_probs = []
 with torch.no_grad():
     for images, labels in tqdm(test_loader, desc="[Test]"):
         images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
-        outputs = model(images)
+        with torch.amp.autocast(device_type='cuda', enabled=use_amp):
+            outputs = model(images)
 
         probs = F.softmax(outputs, dim=1) # Get probabilities for AUC
         _, predicted = torch.max(outputs, 1)
@@ -319,10 +322,10 @@ def plot_results(results, class_names, save_dir):
 
 
     plt.tight_layout()
-    plot_filename = os.path.join(save_dir, 'training_results.png')
+    plot_filename = os.path.join(save_dir, 'training_results_2_0.png')
     plt.savefig(plot_filename)
     print(f"Results plot saved to {plot_filename}")
-    plt.show()
+    plt.close()
 
 
 # Plot the results using the adapted function

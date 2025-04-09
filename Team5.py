@@ -18,7 +18,7 @@ import os                     # <-- Added os
 data_dir = "/home/rikisu/NNDL/CNN/cell_images" # <--- MAKE SURE THIS PATH IS CORRECT
 
 # Set the number of training epochs
-epochs = 20 # Increase for potentially better results
+epochs = 40 # Increase for potentially better results
 
 # Automatically set the number of worker processes for data loading
 num_workers = multiprocessing.cpu_count()
@@ -123,7 +123,7 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Enable mixed precision training if GPU is available
 use_amp = torch.cuda.is_available()
-scaler = torch.amp.GradScaler('cuda') # Correct scaler initialization
+scaler = torch.amp.GradScaler(device="cuda", enabled=use_amp)# Correct scaler initialization
 
 print("\n--- Starting Training ---")
 train_losses = []
@@ -142,8 +142,9 @@ for epoch in range(epochs):
         optimizer.zero_grad()
 
         # Mixed precision context
-        outputs = model(images)
-        loss = criterion(outputs, labels)
+        with torch.amp.autocast(device_type='cuda', enabled=use_amp): 
+            outputs = model(images)
+            loss = criterion(outputs, labels)
 
         # Scale loss and backpropagate
         scaler.scale(loss).backward()
@@ -168,8 +169,9 @@ for epoch in range(epochs):
         for images, labels in val_progress_bar:
             images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
 
-            outputs = model(images)
-            loss = criterion(outputs, labels)
+            with torch.amp.autocast(device_type='cuda', enabled=use_amp):
+                outputs = model(images)
+                loss = criterion(outputs, labels)
 
             val_running_loss += loss.item()
             _, predicted = torch.max(outputs.data, 1)
@@ -198,8 +200,8 @@ test_all_probs = []
 with torch.no_grad():
     for images, labels in tqdm(test_loader, desc="[Test Eval]"):
         images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
-
-        outputs = model(images)
+        with torch.amp.autocast(device_type='cuda', enabled=use_amp): 
+            outputs = model(images)
 
         probs = F.softmax(outputs, dim=1) # Get probabilities
         _, predicted = torch.max(outputs.data, 1)
@@ -344,7 +346,7 @@ def plot_results(results_dict, class_names_list, save_path):
     except Exception as e:
         print(f"Error saving plot: {e}")
 
-    plt.show() # Display the plot
+    plt.close() # Display the plot
 
 # Call the plotting function
 plot_results(results, class_names, save_dir)
