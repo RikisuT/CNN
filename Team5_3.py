@@ -30,7 +30,7 @@ num_workers = multiprocessing.cpu_count()
 print(f"Using {num_workers} workers for data loading.")
 
 # Directory to save results and models
-save_dir = 'results_improved_Team5'
+save_dir = 'results'
 os.makedirs(save_dir, exist_ok=True)
 best_model_save_path = os.path.join(save_dir, 'best_model_Team5.pth')
 

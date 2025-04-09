@@ -111,7 +111,7 @@ def predict(model, image_tensor, device):
 def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Malaria Cell Detection')
-    parser.add_argument('--model', type=str, default='/home/rikisu/NNDL/CNN/results_improved_Team5/best_model_Team5.pth',
+    parser.add_argument('--model', type=str, default='/home/rikisu/NNDL/CNN/results/best_model_Team5.pth',
                         help='Path to the pre-trained model')
     parser.add_argument('--image', type=str, help='Path to the image for prediction')
     args = parser.parse_args()
