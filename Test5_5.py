@@ -11,16 +11,14 @@ import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import numpy as np
 import os
-import random
-import math 
 
 # Set the path to the dataset directory
 data_dir = "/home/rikisu/NNDL/CNN/cell_images"  
 
 # Training configuration
-epochs = 50  
+epochs = 40  
 batch_size = 32
-learning_rate = 0.0003 
+learning_rate = 0.001
 seed = 42 
 patience = 15 
 
@@ -119,7 +117,7 @@ class MalariaCNNImproved(nn.Module):
         self.relu3_2 = nn.ReLU()
         self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
         
-        # New Block 4
+        # Block 4
         self.conv4_1 = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn4_1 = nn.BatchNorm2d(256)
         self.relu4_1 = nn.ReLU()
@@ -173,8 +171,6 @@ class MalariaCNNImproved(nn.Module):
         
         x = self.fc3(x)
         return x
-
-#  Model Setup 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
@@ -182,22 +178,10 @@ model = MalariaCNNImproved(num_classes=num_classes).to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=0.01) 
 
-#  Learning Rate Scheduler with Warmup 
-def warmup_cosine_schedule(optimizer, warmup_epochs, total_epochs):
-    def lr_lambda(epoch):
-        if epoch < warmup_epochs:
-            return float(epoch) / float(max(1, warmup_epochs))
-        return 0.5 * (1.0 + math.cos(math.pi * (epoch - warmup_epochs) / (total_epochs - warmup_epochs)))
-    
-    return optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
 
-scheduler = warmup_cosine_schedule(optimizer, warmup_epochs=5, total_epochs=epochs)
-
-# Mixed Precision Scaler
 use_amp = torch.cuda.is_available()
 scaler = torch.amp.GradScaler(device="cuda", enabled=use_amp)
 print(f"Using Automatic Mixed Precision (AMP): {use_amp}")
-
 
 print("\n Starting Training ")
 train_losses = []
@@ -267,9 +251,6 @@ for epoch in range(epochs):
 
     print(f"Epoch {epoch+1}/{epochs} => Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f} | Val Acc: {accuracy:.2f}%")
 
-    #  Learning Rate Scheduling 
-    scheduler.step() 
-    
     #  Early Stopping & Best Model Check - now based on accuracy 
     if accuracy > best_val_accuracy:
         best_val_accuracy = accuracy
@@ -287,7 +268,6 @@ for epoch in range(epochs):
             break 
         
 print("\n Training Finished ")
-
 
 #  Final Test Set Evaluation 
 print(f"\n Loading best model from {best_model_save_path} for final evaluation ")
