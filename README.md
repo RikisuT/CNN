@@ -1,2 +1,2 @@
 # CNN
-CNN on malaria cells
+CNN implimentation for Malaria Detection
